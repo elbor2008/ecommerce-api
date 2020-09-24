@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Core.Models;
 using Infrastructure.Data;
+using Infrastructure.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,17 +15,35 @@ namespace Api.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly StoreContext _storeContext;
+        private readonly IProductRepository _productRepository;
 
-        public ProductsController(StoreContext storeContext)
+        public ProductsController(IProductRepository productRepository)
         {
-            _storeContext = storeContext;
+            _productRepository = productRepository;
         }
         [HttpGet]
         public async Task<IActionResult> GetProducts()
         {
-            IEnumerable<Product> products = await _storeContext.Products.ToListAsync();
+            var products = await _productRepository.GetProductsAsync();
             return Ok(products);
+        }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetProduct(int id)
+        {
+            var product = await _productRepository.GetProductByIdAsync(id);
+            return Ok(product);
+        }
+        [HttpGet("types")]
+        public async Task<IActionResult> GetProductTypes()
+        {
+            var productTypes = await _productRepository.GetProductTypesAsync();
+            return Ok(productTypes);
+        }
+        [HttpGet("brands")]
+        public async Task<IActionResult> GetProductBrands()
+        {
+            var productBrands = await _productRepository.GetProductBrandsAsync();
+            return Ok(productBrands);
         }
     }
 }
