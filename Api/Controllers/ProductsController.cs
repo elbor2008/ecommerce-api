@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Api.Dtos;
+using Api.Errors;
 using AutoMapper;
 using Core.Models;
 using Core.Specifications;
@@ -14,9 +15,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ProductsController : ControllerBase
+    public class ProductsController : BaseApiController
     {
         private readonly IGenericRepository<Product> _productRepository;
         private readonly IGenericRepository<ProductType> _productTypeRepository;
@@ -39,11 +38,17 @@ namespace Api.Controllers
             return Ok(_mapper.Map<IEnumerable<ProductReturnToDto>>(products));
         }
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ProductReturnToDto))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ApiResponse))]
         public async Task<IActionResult> GetProduct(int id)
         {
             //var product = await _productRepository.GetByIdAsync(id);
             var specification = new ProductsWithTypesAndBrandsSpecification(p => p.Id == id);
             var product = await _productRepository.GetWithSpecificationAsync(specification);
+            if (product == null)
+            {
+                return NotFound(new ApiResponse(StatusCodes.Status404NotFound));
+            }
             return Ok(_mapper.Map<ProductReturnToDto>(product));
         }
         [HttpGet("types")]
